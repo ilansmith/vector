@@ -1,4 +1,5 @@
 vector
 *.o
 *.a
+built-in.supp
 tags
