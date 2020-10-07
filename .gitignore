@@ -1,0 +1,4 @@
+vector
+*.o
+*.a
+tags
