@@ -46,7 +46,7 @@ static inline void buf_realloc(struct vector *vec, unsigned int pos)
 	if (capacity_required <= vec->capacity)
 		return;
 
-	buf = realloc(vec->buf, capacity_required * sizeof(void*));
+	buf = (void**)realloc(vec->buf, capacity_required * sizeof(void*));
 	if (!buf)
 		return;
 
@@ -58,7 +58,7 @@ static inline void buf_realloc(struct vector *vec, unsigned int pos)
 
 static inline void do_replace(struct vector *vec, int pos, void *e)
 {
-	if (vec->buf[pos])
+	if (vec->buf[pos] && vec->dtor)
 		vec->dtor(vec->buf[pos]);
 
 	vec->buf[pos] = e;
@@ -72,10 +72,12 @@ void vec_uninit(vector_t vector)
 		return;
 
 	vec = (struct vector*)vector;
-	while (vec->capacity) {
-		if (vec->buf[vec->capacity - 1])
-			vec->dtor(vec->buf[vec->capacity - 1]);
-		vec->capacity--;
+	if (vec->dtor) {
+		while (vec->capacity) {
+			if (vec->buf[vec->capacity - 1])
+				vec->dtor(vec->buf[vec->capacity - 1]);
+			vec->capacity--;
+		}
 	}
 
 	free(vec->buf);
@@ -86,11 +88,11 @@ vector_t vec_init(vec_dtor dtor)
 {
 	struct vector *vec;
 
-	vec = malloc(sizeof(struct vector));
+	vec = (struct vector*)malloc(sizeof(struct vector));
 	if (!vec)
 		return NULL;
 
-	vec->buf = calloc(VEC_INIT_CAPACITY, sizeof(void*));
+	vec->buf = (void**)calloc(VEC_INIT_CAPACITY, sizeof(void*));
 	if (!vec->buf) {
 		vec_uninit(vec);
 		return NULL;
@@ -98,7 +100,7 @@ vector_t vec_init(vec_dtor dtor)
 
 	vec->push_back_idx = 0;
 	vec->capacity = VEC_INIT_CAPACITY;
-	vec->dtor = dtor ? dtor : free;
+	vec->dtor = dtor;
 
 	return (vector_t)vec;
 }
