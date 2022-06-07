@@ -5,8 +5,8 @@
 #define VEC_INIT_CAPACITY 4
 
 struct vector {
-	unsigned int push_back_idx;
-	unsigned int capacity;
+	pos_t push_back_idx;
+	pos_t capacity;
 	void **buf;
 	vec_dtor dtor;
 };
@@ -29,19 +29,19 @@ struct vector {
  * 2. Add 1 for the closest power of 2 greater than the MSB
  * 3. Double this number
  */
-static inline unsigned int pos2capacity(unsigned int x)
+static inline pos_t pos2capacity(pos_t x)
 {
-	int i;
+	uint64_t i;
 
 	for (i = 0; i < 63; i++)
-		x |= x >> (1<<i);
+		x |= x >> ((uint64_t)1<<i);
 	return ((x >> 1) + 1) << 2;
 }
 
-static inline int buf_realloc(struct vector *vec, unsigned int pos)
+static inline int buf_realloc(struct vector *vec, pos_t pos)
 {
 	void **buf;
-	unsigned int capacity_required = pos2capacity(pos);
+	pos_t capacity_required = pos2capacity(pos);
 	
 	if (capacity_required <= vec->capacity)
 		return 0;
@@ -57,7 +57,7 @@ static inline int buf_realloc(struct vector *vec, unsigned int pos)
 	return 0;
 }
 
-static inline void do_replace(struct vector *vec, int pos, void *e)
+static inline void do_replace(struct vector *vec, pos_t pos, void *e)
 {
 	if (vec->buf[pos] && vec->dtor)
 		vec->dtor(vec->buf[pos]);
@@ -123,7 +123,7 @@ int vec_push_back(vector_t vector, void *e)
 	return 0;
 }
 
-int vec_insert(vector_t vector, void *e, unsigned int pos)
+int vec_insert(vector_t vector, void *e, pos_t pos)
 {
 	struct vector *vec = (struct vector*)vector;
 
@@ -144,43 +144,42 @@ int vec_insert(vector_t vector, void *e, unsigned int pos)
 	return 0;
 }
 
-void vec_erase(vector_t vector, int pos)
+void vec_erase(vector_t vector, pos_t pos)
 {
 	struct vector *vec = (struct vector*)vector;
 
 	do_replace(vec, pos, NULL);
 }
 
-void *vec_at(vector_t vector, int pos)
+void *vec_at(vector_t vector, pos_t pos)
 {
 	struct vector *vec = (struct vector*)vector;
 
-	if (vec->capacity <= (unsigned int)pos)
+	if (vec->capacity <= (pos_t)pos)
 		return NULL;
 
 	return vec->buf[pos];
 }
 
-unsigned int vec_size(vector_t vector)
+pos_t vec_size(vector_t vector)
 {
 	struct vector *vec = (struct vector*)vector;
 
 	return vec->push_back_idx;
 }
 
-unsigned int vec_capacity(vector_t vector)
+pos_t vec_capacity(vector_t vector)
 {
 	struct vector *vec = (struct vector*)vector;
 
 	return vec->capacity;
 }
 
-unsigned int vec_for_each(vector_t vector, int (*func)(void *e, va_list va),
-		...)
+pos_t vec_for_each(vector_t vector, int (*func)(void *e, va_list va), ...)
 {
 	struct vector *vec = (struct vector*)vector;
 	va_list va;
-	unsigned int i;
+	pos_t i;
 
 	va_start(va, func);
 	for (i = 0; i < vec->capacity; i++) {
@@ -195,7 +194,7 @@ unsigned int vec_for_each(vector_t vector, int (*func)(void *e, va_list va),
 	return i;
 }
 
-void **vec_idx2addr(vector_t vector, unsigned int idx)
+void **vec_idx2addr(vector_t vector, pos_t idx)
 {
 	struct vector *vec = (struct vector*)vector;
 
