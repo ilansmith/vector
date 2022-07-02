@@ -23,12 +23,12 @@ pos_t vec_for_each(vector_t vector, int (*func)(void *e, va_list va),
 	...);
 void **vec_idx2addr(vector_t vector, pos_t idx);
 
-#define VEC_OFFSET(vector, iter) \
-	((pos_t)(iter - (typeof(iter))vec_idx2addr(vector, 0)))
+#define VEC_OFFSET(vector, type, iter) \
+	((pos_t)(iter - (type)vec_idx2addr(vector, 0)))
 
-#define VEC_FOREACH(vector, iter) \
-	for (iter = (typeof(iter))vec_idx2addr(vector, 0); \
-		VEC_OFFSET(vector, iter) < vec_size(vector); \
+#define VEC_FOREACH(vector, type, iter) \
+	for (iter = (type)vec_idx2addr(vector, 0); \
+		VEC_OFFSET(vector, type, iter) < vec_size(vector); \
 		iter++)
 #endif
 

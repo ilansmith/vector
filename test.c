@@ -72,13 +72,15 @@ static void do_test(void)
 
 	printf("traversing vector (size:%d)\n", vec_size(vec));
 
-	VEC_FOREACH(vec, iter) {
+	VEC_FOREACH(vec, struct element**, iter) {
 		if (!*iter) {
-			printf("vec[%u] = NULL\n", VEC_OFFSET(vec, iter));
+			printf("vec[%u] = NULL\n", VEC_OFFSET(vec,
+				struct element**, iter));
 			continue;
 		}
 
-		printf("vec[%u] = %d\n", VEC_OFFSET(vec, iter), (*iter)->num);
+		printf("vec[%u] = %d\n", VEC_OFFSET(vec, struct element**,
+			iter), (*iter)->num);
 	}
 
 	printf("\n");
